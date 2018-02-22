@@ -41,8 +41,11 @@ var paths = {
 			img: '/img/**/*',
 			index: '/index.jade',
 			templates: '/templates/**/*.jade',
+			lib: '/lib/**/*',
+      indexHtml: '/index.html',
 
-			jqueryJs: '/vendor/jquery/dist/jquery.js',
+
+      jqueryJs: '/vendor/jquery/dist/jquery.js',
 			bootstrapJs: '/vendor/bootstrap/dist/js/bootstrap.js',
       angularJs: '/vendor/angular/angular.js',
       angularResourceJs: '/vendor/angular-resource/angular-resource.js',
@@ -75,6 +78,7 @@ var paths = {
       toasterCss: '/vendor/AngularJS-Toaster/toaster.css',
 			// animateCss: '/vendor/animate.css/animate.css',
 			ngAnimate: '/vendor/angular-animate-css/build/nga.css',
+			tmplCss: '/css/*.css',
 		},
 		devDest: {
 			scripts: '/js',
@@ -87,6 +91,8 @@ var paths = {
 			img: '/img',
 			vendor: '/vendor',
 			templates: '/templates',
+			lib: '/lib',
+      tmplCss: '/css',
 		}
 	};
 
@@ -215,6 +221,16 @@ pipes.buildScriptsDev = function () {
     .pipe(gulp.dest(paths.distDev + paths.devDest.scripts));
 };
 
+// Template Imperial
+pipes.buildLibDev = function () {
+  return streamqueue({ objectMode: true },
+    gulp.src([
+      paths.distApp + paths.src.lib
+    ])
+  )
+    .pipe(gulp.dest(paths.distDev + paths.devDest.lib));
+};
+
 // Copy bower vendor to "dev" section if order of files cares
 pipes.buildVendorDevCss = function () {
 	return es.concat(
@@ -237,6 +253,12 @@ pipes.buildVendorDevCss = function () {
 pipes.buildStylesDev = function () {
 	return gulp.src(paths.distApp + paths.src.stylesCss)
 			.pipe(gulp.dest(paths.distDev + paths.devDest.styles));
+};
+
+// Template Imperial
+pipes.buildCssDev = function () {
+	return gulp.src(paths.distApp + paths.src.tmplCss)
+			.pipe(gulp.dest(paths.distDev + paths.devDest.tmplCss));
 };
 
 // Copy styles (only *.less files) to "dev" section
@@ -270,12 +292,15 @@ pipes.buildIndexJadeDev = function () {
 
 	// var YOUR_LOCALS {};
 
-	return gulp.src(paths.distViews + paths.src.index)
-			.pipe(plumber())
-			.pipe(jade({
-				// locals: YOUR_LOCALS,
-				pretty: '\t'
-			}))
+	// return gulp.src(paths.distViews + paths.src.index)
+	// 		.pipe(plumber())
+	// 		.pipe(jade({
+	// 			// locals: YOUR_LOCALS,
+	// 			pretty: '\t'
+	// 		}))
+	// 		.pipe(gulp.dest(paths.distDev + paths.devDest.index))
+
+	return gulp.src(paths.distViews + paths.src.indexHtml)
 			.pipe(gulp.dest(paths.distDev + paths.devDest.index))
 };
 
@@ -300,6 +325,8 @@ pipes.buildIndexDev = function () {
 
   var buildScriptsDev = pipes.buildScriptsDev();
 
+  var buildLibDev = pipes.buildLibDev();
+
 	var buildIndexJadeDev = pipes.buildIndexJadeDev();
 
 	var buildViewsJadeDev = pipes.buildViewsJadeDev();
@@ -310,6 +337,8 @@ pipes.buildIndexDev = function () {
 
 	var buildDevStyles = pipes.buildStylesDev();
 
+	var buildDevCss = pipes.buildCssDev();
+
 	var buildFontsDev = pipes.buildFontsDev();
 
 	var buildImgDev = pipes.buildImgDev();
@@ -319,8 +348,10 @@ pipes.buildIndexDev = function () {
 		return buildIndexJadeDev
 			.pipe(inject(buildVendorDevJs, {relative: true, name: 'vendor'}))
 			.pipe(inject(buildScriptsDev, {relative: true, name: 'script'}))
+			.pipe(inject(buildLibDev, {relative: true, name: 'lib'}))
 			.pipe(inject(buildVendorDevCss, {relative: true, name: 'vendor'}))
 			.pipe(inject(buildDevStyles, {relative: true, name: 'styles'}))
+			.pipe(inject(buildDevCss, {relative: true, name: 'css'}))
 			.pipe(inject(buildStylesLessDev, {relative: true, name: 'less'}))
 			.pipe(gulp.dest(paths.distDev + paths.devDest.index));
 };
